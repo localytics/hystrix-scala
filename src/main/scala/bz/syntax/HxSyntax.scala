@@ -5,7 +5,6 @@ import bz.HxControl._
 import bz.HxInterface
 import com.netflix.hystrix.HystrixCommand.Setter
 import com.netflix.hystrix.HystrixCommandProperties.{Setter => CSetter}
-import scala.language.higherKinds
 import scalaz.\/
 
 /**
@@ -17,7 +16,8 @@ object hx {
   /**
    * Implicit class decorating functions of arity 0
    */
-  implicit class HxLift[A](fn: () => A) {
+  implicit def toHxLift[A](fn: () => A): HxLift[A] = new HxLift[A](fn)
+  class HxLift[A](fn: () => A) {
 
     /**
      * Lift a function of arity 0 into a
@@ -31,22 +31,29 @@ object hx {
   /**
    * Implicit class decorating a HystrixCommand.Setter
    */
-  implicit class GKLift[A](s: Setter){
+
+  implicit def toGKLift(s: Setter): GKLift = new GKLift(s)
+  class GKLift(s: Setter){
 
     /**
      * Lift a Setter into a HystrixCommand with
      * run method of r and getFallback method of fb
      * and execute
      */
-    def run(r: () => A, fb: () => A): A =
+    def run[A](r: () => A, fb: () => A): A =
       HX.instance(r, fb)(s)
 
     /**
      * Lift a Setter into a HystrixCommand and
      * execute using the given () => A
      */
-    def run[M[_]](fn: () => A)(implicit hxi: HxInterface[M]): M[A] =
+    def run[M[_], A](fn: () => A)(implicit hxi: HxInterface[M]): M[A] =
       hxi.mHx(s)(fn)
+
+  }
+
+  implicit def toGKLiftConfig(s: Setter): GKLiftConfig = new GKLiftConfig(s)
+  class GKLiftConfig(s: Setter) {
 
     /**
      * Returns original Setter with added command properties,
@@ -59,7 +66,9 @@ object hx {
   /**
    * Implicit class decorating a HystrixCommand.Setter
    */
-  implicit class ControlLift(s: Setter){
+
+  implicit def toControlLift(s: Setter): ControlLift = new ControlLift(s)
+  class ControlLift(s: Setter){
 
     /**
      * Lift a Setter into a HystrixCommand and
@@ -72,7 +81,8 @@ object hx {
   /**
    * Implicit class decorating a HystrixCommandProperties.Setter
    */
-  implicit class CSetterLift(s: CSetter){
+  implicit def toCSetterLift(s: CSetter): CSetterLift = new CSetterLift(s)
+  class CSetterLift(s: CSetter){
     import com.netflix.hystrix.HystrixCommandProperties
     import HystrixCommandProperties.ExecutionIsolationStrategy._
 

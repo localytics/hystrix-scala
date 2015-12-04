@@ -25,7 +25,7 @@ object HXTest extends Properties("HX") {
       val (th, i) = thI
       val t = HX.command(g, c)
                 .config(_.withCircuitBreakerForceOpen(true))
-      t.run[THD]{ () => throw th; i }
+      t.run[THD, Int]{ () => throw th }
        .swap.map(_.getMessage).getOrElse("") == "hx-short-circuited"
     }
 
@@ -34,7 +34,7 @@ object HXTest extends Properties("HX") {
       (ms, g, c) =>
         val t = HX.command(g, c)
                   .config(_.withExecutionTimeoutInMilliseconds(1))
-        t.run[THD]{ () => Thread.sleep(ms.toLong) }
+        t.run[THD, Unit]{ () => Thread.sleep(ms.toLong) }
           .swap.map(_.getMessage).getOrElse("") == "hx-timed-out"
       }
 
@@ -43,7 +43,7 @@ object HXTest extends Properties("HX") {
       val t = HX.command(g, c)
                 .config(_.usingSemaphore
                  .withExecutionIsolationSemaphoreMaxConcurrentRequests(0))
-      t.run[THD]{ () => () }
+      t.run[THD, Unit]{ () => () }
        .swap.map(_.getMessage).getOrElse("") == "hx-maxed-out"
     }
 }

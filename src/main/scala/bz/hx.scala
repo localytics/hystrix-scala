@@ -3,7 +3,6 @@ package bz
 import com.netflix.hystrix.{HystrixCommand, HystrixCommandGroupKey}
 import com.netflix.hystrix.HystrixCommandKey
 import com.netflix.hystrix.HystrixCommand.Setter
-import scala.language.higherKinds
 import scalaz.\/
 import scalaz.syntax.either._
 import scalaz.syntax.std.boolean._
@@ -157,7 +156,7 @@ object HxControl {
             }.foreach(x => throw x)
             f
           }
-          case _: HxOk[A] => res
+          case HxOk(_) => res
         }
       }
 
@@ -166,7 +165,7 @@ object HxControl {
           r match {
             case HxFail(a, _) =>
               HxFail(a, Some(new Throwable("overriden-by-mHx")))
-            case k: HxOk[A] => k
+            case HxOk(_) => r
           }
         }.getOrElse {
           HxFail(None, Some(new Throwable("overriden-by-mHx")))
