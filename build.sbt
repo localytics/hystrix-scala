@@ -1,6 +1,6 @@
-name := """hxfn"""
+name := """hystrix-scala"""
 
-version := "1.0"
+organization := "com.localytics"
 
 scalaVersion := "2.11.7"
 
